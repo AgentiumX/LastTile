@@ -25,8 +25,6 @@ class LevelData {
 }
 
 class _LevelDef {
-  final int rows;
-  final int cols;
   final int startRow;
   final int startCol;
   final int endRow;
@@ -35,8 +33,6 @@ class _LevelDef {
   final List<Tile> specialTiles;
 
   _LevelDef({
-    this.rows = 8,
-    this.cols = 8,
     required this.startRow,
     required this.startCol,
     required this.endRow,
@@ -54,8 +50,8 @@ class _LevelDef {
 
     final temp = Level(
       id: 'level_${index + 1}',
-      rows: rows,
-      cols: cols,
+      rows: 8,
+      cols: 8,
       optimalSteps: 0,
       allowedSteps: 0,
       specialTiles: tiles,
@@ -66,8 +62,8 @@ class _LevelDef {
 
     return Level(
       id: 'level_${index + 1}',
-      rows: rows,
-      cols: cols,
+      rows: 8,
+      cols: 8,
       optimalSteps: optimal,
       allowedSteps: optimal + bufferSteps,
       specialTiles: tiles,
@@ -141,8 +137,8 @@ Map<int, _LevelDef> _buildAllLevels() {
 
   for (int i = 0; i < 10; i++) {
     final tiles = <Tile>[];
-    tiles.add(Tile(row: 2, col: 2, type: TileType.teleport, teleportId: 'tp_${i}'));
-    tiles.add(Tile(row: 5, col: 5, type: TileType.teleport, teleportId: 'tp_${i}'));
+    tiles.add(Tile(row: 2, col: 2, type: TileType.teleport, teleportId: 'tp_$i'));
+    tiles.add(Tile(row: 5, col: 5, type: TileType.teleport, teleportId: 'tp_$i'));
     tiles.add(Tile(row: 3, col: 3, type: TileType.key));
     tiles.add(Tile(row: 4, col: 4, type: TileType.lock));
 
@@ -158,10 +154,10 @@ Map<int, _LevelDef> _buildAllLevels() {
 
   for (int i = 0; i < 10; i++) {
     final tiles = <Tile>[];
-    tiles.add(Tile(row: 1, col: 1, type: TileType.teleport, teleportId: 'x_${i}'));
-    tiles.add(Tile(row: 6, col: 6, type: TileType.teleport, teleportId: 'x_${i}'));
-    tiles.add(Tile(row: 1, col: 6, type: TileType.teleport, teleportId: 'y_${i}'));
-    tiles.add(Tile(row: 6, col: 1, type: TileType.teleport, teleportId: 'y_${i}'));
+    tiles.add(Tile(row: 1, col: 1, type: TileType.teleport, teleportId: 'x_$i'));
+    tiles.add(Tile(row: 6, col: 6, type: TileType.teleport, teleportId: 'x_$i'));
+    tiles.add(Tile(row: 1, col: 6, type: TileType.teleport, teleportId: 'y_$i'));
+    tiles.add(Tile(row: 6, col: 1, type: TileType.teleport, teleportId: 'y_$i'));
     tiles.add(Tile(row: 3, col: 2, type: TileType.key));
     tiles.add(Tile(row: 4, col: 5, type: TileType.lock));
     tiles.add(Tile(row: 2, col: 5, type: TileType.key));

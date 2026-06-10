@@ -63,7 +63,7 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
       ref.read(gameProvider.notifier).restart();
       return;
     }
-    if (dir != null) _handleDirection(dir!);
+    if (dir != null) _handleDirection(dir);
   }
 
   @override
@@ -74,14 +74,16 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
       if (state.status == GameStatus.completed ||
           state.status == GameStatus.failed) {
         _resultShown = true;
-        Future.microtask(() => _showResult(state!));
+        Future.microtask(() => _showResult(state));
       }
     }
 
     if (state == null) {
       return Scaffold(
         backgroundColor: AppTheme.background,
-        body: const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppTheme.primary),
+        ),
       );
     }
 

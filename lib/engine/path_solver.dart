@@ -1,4 +1,4 @@
-import 'dart:collection';
+import 'package:collection/collection.dart';
 
 import '../models/level.dart';
 import '../models/tile.dart';
@@ -23,7 +23,7 @@ class _Node implements Comparable<_Node> {
   @override
   int compareTo(_Node other) => priority - other.priority;
 
-  String get key => '${row}_${col}_${keys}';
+  String get stateKey => '${row}_${col}_${keys}';
 }
 
 class PathSolver {
@@ -47,21 +47,18 @@ class PathSolver {
 
     final teleportMap = <String, List<(int, int)>>{};
     final keyPositions = <(int, int)>{};
-    final lockPositions = <(int, int)>{};
 
     for (final t in level.specialTiles) {
       if (t.type == TileType.teleport && t.teleportId != null) {
         teleportMap.putIfAbsent(t.teleportId!, () => []).add((t.row, t.col));
       } else if (t.type == TileType.key) {
         keyPositions.add((t.row, t.col));
-      } else if (t.type == TileType.lock) {
-        lockPositions.add((t.row, t.col));
       }
     }
 
     final totalKeys = keyPositions.length;
 
-    int heuristic(int r, int c, int k) {
+    int heuristic(int r, int c) {
       return manhattan(r, c, end.row, end.col);
     }
 
@@ -72,11 +69,11 @@ class PathSolver {
       row: start.row,
       col: start.col,
       steps: 0,
-      heuristic: heuristic(start.row, start.col, 0),
+      heuristic: heuristic(start.row, start.col),
       keys: 0,
     );
     open.add(startNode);
-    visitedStates[startNode.key] = 0;
+    visitedStates[startNode.stateKey] = 0;
 
     while (open.isNotEmpty) {
       final current = open.removeFirst();
@@ -102,7 +99,7 @@ class PathSolver {
         }
 
         final newSteps = current.steps + 1;
-        final stateKey = '${nr}_${nc}_${newKeys}';
+        final stateKey = '${nr}_${nc}_$newKeys';
 
         if (visitedStates.containsKey(stateKey) &&
             visitedStates[stateKey]! <= newSteps) continue;
@@ -112,7 +109,7 @@ class PathSolver {
           row: nr,
           col: nc,
           steps: newSteps,
-          heuristic: heuristic(nr, nc, newKeys),
+          heuristic: heuristic(nr, nc),
           keys: newKeys,
         ));
 
@@ -124,7 +121,7 @@ class PathSolver {
           if (pair != null) {
             for (final (pr, pc) in pair) {
               if (pr == nr && pc == nc) continue;
-              final tpKey = '${pr}_${pc}_${newKeys}';
+              final tpKey = '${pr}_${pc}_$newKeys';
               if (visitedStates.containsKey(tpKey) &&
                   visitedStates[tpKey]! <= newSteps) continue;
               visitedStates[tpKey] = newSteps;
@@ -132,7 +129,7 @@ class PathSolver {
                 row: pr,
                 col: pc,
                 steps: newSteps,
-                heuristic: heuristic(pr, pc, newKeys),
+                heuristic: heuristic(pr, pc),
                 keys: newKeys,
               ));
             }

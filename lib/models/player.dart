@@ -1,5 +1,3 @@
-import '../models/tile.dart';
-
 class Player {
   int row;
   int col;

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_theme.dart';
-import '../engine/level_loader.dart';
 import '../screens/level_screen.dart';
 import '../state/game_provider.dart';
 import '../storage/save_manager.dart';
@@ -100,7 +99,9 @@ class _LevelButton extends StatelessWidget {
           color: unlocked ? AppTheme.surface : AppTheme.tileVisited,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: unlocked ? AppTheme.primary.withValues(alpha: 0.5) : Colors.transparent,
+            color: unlocked
+                ? AppTheme.primary.withOpacity(0.5)
+                : Colors.transparent,
           ),
         ),
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -122,7 +123,9 @@ class _LevelButton extends StatelessWidget {
                 return Icon(
                   Icons.star,
                   size: 10,
-                  color: i < stars ? AppTheme.tileEnd : Colors.grey.withValues(alpha: 0.3),
+                  color: i < stars
+                      ? AppTheme.tileEnd
+                      : Colors.grey.withOpacity(0.3),
                 );
               }),
             ),

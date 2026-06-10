@@ -73,7 +73,7 @@ class TileWidget extends StatelessWidget {
             ? null
             : [
                 BoxShadow(
-                  color: bgColor.withValues(alpha: 0.3),
+                  color: bgColor.withOpacity(0.3),
                   blurRadius: isPlayer ? 12 : 4,
                   spreadRadius: isPlayer ? 2 : 0,
                 ),
@@ -108,7 +108,7 @@ class TileWidget extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.6),
+                      color: Colors.white.withOpacity(0.6),
                       blurRadius: 8,
                     ),
                   ],
