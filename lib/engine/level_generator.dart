@@ -1,10 +1,11 @@
-import 'dart:math' as math;
+import 'dart:math';
 
 import '../models/level.dart';
 import '../models/tile.dart';
+import 'path_solver.dart';
 
 class LevelGenerator {
-  final math.Random _rand = math.Random();
+  final Random _rand = Random();
 
   Level generate({
     String id = 'generated',
@@ -45,12 +46,26 @@ class LevelGenerator {
     if (difficulty == 2) extraBuffer = 5;
     if (difficulty >= 3) extraBuffer = 3;
 
-    return Level(
+    final allowedSteps = pathLength + extraBuffer;
+
+    final tempLevel = Level(
       id: id,
       rows: rows,
       cols: cols,
       optimalSteps: pathLength,
-      allowedSteps: pathLength + extraBuffer,
+      allowedSteps: allowedSteps,
+      specialTiles: tiles,
+    );
+
+    final optimal = PathSolver.findOptimalSteps(tempLevel);
+    if (optimal == null) return null;
+
+    return Level(
+      id: id,
+      rows: rows,
+      cols: cols,
+      optimalSteps: optimal,
+      allowedSteps: optimal + extraBuffer,
       specialTiles: tiles,
     );
   }

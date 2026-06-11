@@ -51,11 +51,8 @@ class GameEngine {
     if (targetTile != null &&
         targetTile.type == TileType.teleport &&
         targetTile.teleportId != null) {
-      final pair = _findTeleportPair(
-        state.level,
-        targetTile.teleportId!,
-        (targetTile.row, targetTile.col),
-      );
+      final pair = _findTeleportPair(state.level, targetTile.teleportId!,
+          (targetTile.row, targetTile.col));
       if (pair != null) {
         newState = newState.copyWith(
           player: newState.player.copyWith(row: pair.$1, col: pair.$2),

@@ -1,5 +1,4 @@
-// ignore_for_file: avoid_print
-import 'package:collection/collection.dart';
+import 'dart:collection';
 
 enum TileType { normal, start, end, teleport, key, lock, bridge, flip }
 
@@ -18,34 +17,12 @@ class Level {
   final int optimalSteps;
   final int allowedSteps;
   final List<Tile> specialTiles;
-  Level({
-    required this.id,
-    this.rows = 8,
-    this.cols = 8,
-    required this.optimalSteps,
-    required this.allowedSteps,
-    this.specialTiles = const [],
-  });
+  Level({required this.id, this.rows = 8, this.cols = 8, required this.optimalSteps, required this.allowedSteps, this.specialTiles = const []});
 
   Tile? getSpecialTile(int r, int c) {
-    for (final t in specialTiles) {
-      if (t.row == r && t.col == c) return t;
-    }
+    for (final t in specialTiles) if (t.row == r && t.col == c) return t;
     return null;
   }
-}
-
-class _Node implements Comparable<_Node> {
-  final int r;
-  final int c;
-  final int steps;
-  final int keys;
-  final int heuristic;
-
-  _Node(this.r, this.c, this.steps, this.keys, this.heuristic);
-
-  @override
-  int compareTo(_Node other) => (steps + heuristic) - (other.steps + other.heuristic);
 }
 
 int manhattan(int r1, int c1, int r2, int c2) => (r1 - r2).abs() + (c1 - c2).abs();
@@ -62,12 +39,18 @@ int? solveAStar(Level level) {
     }
   }
 
+  class Node {
+    final int r, c, steps, keys, heuristic;
+    Node(this.r, this.c, this.steps, this.keys, this.heuristic);
+    int get priority => steps + heuristic;
+  }
+
   int heuristic(int r, int c) => manhattan(r, c, endTile.row, endTile.col);
 
-  final open = PriorityQueue<_Node>();
+  final open = PriorityQueue<Node>((a, b) => a.priority - b.priority);
   final visited = <String, int>{};
 
-  final start = _Node(startTile.row, startTile.col, 0, 0, heuristic(startTile.row, startTile.col));
+  final start = Node(startTile.row, startTile.col, 0, 0, heuristic(startTile.row, startTile.col));
   open.add(start);
   visited['${start.r}_${start.c}_0'] = 0;
 
@@ -94,21 +77,21 @@ int? solveAStar(Level level) {
       }
 
       final newSteps = current.steps + 1;
-      final stateKey = '${nr}_${nc}_$newKeys';
+      final stateKey = '${nr}_${nc}_${newKeys}';
       if (visited.containsKey(stateKey) && visited[stateKey]! <= newSteps) continue;
       visited[stateKey] = newSteps;
-      open.add(_Node(nr, nc, newSteps, newKeys, heuristic(nr, nc)));
+      open.add(Node(nr, nc, newSteps, newKeys, heuristic(nr, nc)));
 
       final special2 = level.getSpecialTile(nr, nc);
-      if (special2 != null && special2.type == TileType.teleport && special2.teleportId != null) {
-        final pair = teleportMap[special2.teleportId!];
+      if (special2?.type == TileType.teleport && special2?.teleportId != null) {
+        final pair = teleportMap[special2!.teleportId!];
         if (pair != null) {
           for (final (pr, pc) in pair) {
             if (pr == nr && pc == nc) continue;
-            final tpKey = '${pr}_${pc}_$newKeys';
+            final tpKey = '${pr}_${pc}_${newKeys}';
             if (visited.containsKey(tpKey) && visited[tpKey]! <= newSteps) continue;
             visited[tpKey] = newSteps;
-            open.add(_Node(pr, pc, newSteps, newKeys, heuristic(pr, pc)));
+            open.add(Node(pr, pc, newSteps, newKeys, heuristic(pr, pc)));
           }
         }
       }
@@ -201,14 +184,7 @@ Level _makeLevel(int idx, int sr, int sc, int er, int ec, int buffer, List<Tile>
     Tile(row: er, col: ec, type: TileType.end),
     ...extras,
   ];
-  final temp = Level(
-    id: 'level_${idx + 1}',
-    rows: 8,
-    cols: 8,
-    optimalSteps: 0,
-    allowedSteps: 0,
-    specialTiles: tiles,
-  );
+  final temp = Level(id: 'level_${idx + 1}', rows: 8, cols: 8, optimalSteps: 0, allowedSteps: 0, specialTiles: tiles);
   final optimal = solveAStar(temp) ?? 14;
   return Level(
     id: 'level_${idx + 1}',

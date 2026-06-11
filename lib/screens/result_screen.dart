@@ -44,9 +44,7 @@ class ResultScreen extends StatelessWidget {
                 return Icon(
                   Icons.star,
                   size: 32,
-                  color: i < stars
-                      ? AppTheme.tileEnd
-                      : Colors.grey.withOpacity(0.3),
+                  color: i < stars ? AppTheme.tileEnd : Colors.grey.withValues(alpha: 0.3),
                 );
               }),
             ),

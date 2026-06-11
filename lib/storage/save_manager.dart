@@ -36,7 +36,7 @@ class SaveManager {
   }
 
   static void setStars(String levelId, int stars) {
-    final current = SaveManager.stars(levelId) ?? 0;
+    final current = this.stars(levelId) ?? 0;
     if (stars > current) {
       _box?.put('$keyStarsPrefix$levelId', stars);
     }
