@@ -46,7 +46,6 @@ class TileWidget extends StatelessWidget {
     Color bgColor = AppTheme.tileNormal;
     IconData? icon;
     Color iconColor = Colors.white;
-    String? label;
 
     switch (type) {
       case TileType.start:
@@ -103,19 +102,6 @@ class TileWidget extends StatelessWidget {
           if (icon != null && !isPlayer)
             Center(
               child: Icon(icon, color: iconColor, size: size * 0.35),
-            ),
-          if (label != null && label!.isNotEmpty)
-            Positioned(
-              bottom: 4,
-              right: 6,
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: size * 0.2,
-                  color: iconColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
             ),
           if (isPlayer)
             Center(
