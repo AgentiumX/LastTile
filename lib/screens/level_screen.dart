@@ -135,13 +135,16 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
           ref.read(gameProvider.notifier).restart();
         },
         onNext: () {
-          Navigator.pop(ctx);
-          _resultShown = false;
+          Navigator.pop(ctx); // close dialog
+          Navigator.pop(context); // close current LevelScreen
           final next = widget.levelIndex + 1;
           if (next < LevelLoader.totalLevels) {
-            ref.read(gameProvider.notifier).loadLevel(next);
-          } else {
-            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => LevelScreen(levelIndex: next),
+              ),
+            );
           }
         },
         onHome: () {
