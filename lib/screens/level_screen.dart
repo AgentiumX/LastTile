@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_theme.dart';
 import '../core/utils/direction.dart';
+import '../engine/level_loader.dart';
 import '../models/game_state.dart';
 import '../screens/result_screen.dart';
 import '../state/game_provider.dart';
@@ -95,6 +96,7 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
             children: [
               HudWidget(
                 state: state,
+                levelIndex: widget.levelIndex,
                 bestSteps: ref.read(gameProvider.notifier).bestSteps,
                 onRestart: () {
                   _resultShown = false;
@@ -136,7 +138,7 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
           Navigator.pop(ctx);
           _resultShown = false;
           final next = widget.levelIndex + 1;
-          if (next < 50) {
+          if (next < LevelLoader.totalLevels) {
             ref.read(gameProvider.notifier).loadLevel(next);
           } else {
             Navigator.pop(context);

@@ -228,9 +228,9 @@ void main() {
   });
 
   group('LevelData', () {
-    test('all 50 levels are solvable', () {
+    test('all levels are solvable', () {
       final levels = LevelData.getAllLevels();
-      expect(levels.length, equals(50));
+      expect(levels.length, greaterThanOrEqualTo(50));
       for (final level in levels) {
         expect(PathSolver.hasSolution(level), isTrue,
             reason: 'Level ${level.id} has no solution');

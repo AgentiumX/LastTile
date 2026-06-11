@@ -3,175 +3,262 @@ import '../models/tile.dart';
 import '../engine/path_solver.dart';
 
 class LevelData {
-  static final Map<int, _LevelDef> _levels = _buildAllLevels();
+  static final List<Level> _levels = _buildAllLevels();
 
   static int get totalLevels => _levels.length;
 
   static Level getLevel(int index) {
-    final def = _levels[index];
-    if (def == null) {
+    if (index < 0 || index >= _levels.length) {
       throw RangeError.index(index, _levels, 'level index');
     }
-    return def.build(index);
+    return _levels[index];
   }
 
-  static List<Level> getAllLevels() {
-    final list = <Level>[];
-    for (int i = 0; i < _levels.length; i++) {
-      list.add(getLevel(i));
-    }
-    return list;
-  }
+  static List<Level> getAllLevels() => List.unmodifiable(_levels);
 }
 
-class _LevelDef {
-  final int startRow;
-  final int startCol;
-  final int endRow;
-  final int endCol;
-  final int bufferSteps;
-  final List<Tile> specialTiles;
-
-  _LevelDef({
-    required this.startRow,
-    required this.startCol,
-    required this.endRow,
-    required this.endCol,
-    required this.bufferSteps,
-    this.specialTiles = const [],
-  });
-
-  Level build(int index) {
-    final tiles = <Tile>[
-      Tile(row: startRow, col: startCol, type: TileType.start),
-      Tile(row: endRow, col: endCol, type: TileType.end),
-      ...specialTiles,
-    ];
-
-    final temp = Level(
-      id: 'level_${index + 1}',
-      rows: 8,
-      cols: 8,
-      optimalSteps: 0,
-      allowedSteps: 0,
-      specialTiles: tiles,
-    );
-
-    final optimal = PathSolver.findOptimalSteps(temp) ??
-        ((endRow - startRow).abs() + (endCol - startCol).abs());
-
-    return Level(
-      id: 'level_${index + 1}',
-      rows: 8,
-      cols: 8,
-      optimalSteps: optimal,
-      allowedSteps: optimal + bufferSteps,
-      specialTiles: tiles,
-    );
-  }
+Level _makeLevel(
+  String id,
+  int rows,
+  int cols,
+  int sr,
+  int sc,
+  int er,
+  int ec,
+  int buffer,
+  List<Tile> extras,
+) {
+  final tiles = <Tile>[
+    Tile(row: sr, col: sc, type: TileType.start),
+    Tile(row: er, col: ec, type: TileType.end),
+    ...extras,
+  ];
+  final temp = Level(
+    id: id,
+    rows: rows,
+    cols: cols,
+    optimalSteps: 0,
+    allowedSteps: 0,
+    specialTiles: tiles,
+  );
+  final optimal = PathSolver.findOptimalSteps(temp) ??
+      ((er - sr).abs() + (ec - sc).abs());
+  return Level(
+    id: id,
+    rows: rows,
+    cols: cols,
+    optimalSteps: optimal,
+    allowedSteps: optimal + buffer,
+    specialTiles: tiles,
+  );
 }
 
-Map<int, _LevelDef> _buildAllLevels() {
-  final map = <int, _LevelDef>{};
-  int idx = 0;
+List<Level> _buildAllLevels() {
+  final levels = <Level>[];
+  int n = 0;
 
-  for (int i = 0; i < 10; i++) {
-    int sr = 0, sc = 0;
-    int er = 7, ec = 7;
-    if (i % 3 == 1) {
-      sr = 0; sc = 7; er = 7; ec = 0;
-    } else if (i % 3 == 2) {
-      sr = 3; sc = 0; er = 3; ec = 7;
-    }
-    int buffer = 10 - i;
-    if (buffer < 5) buffer = 5;
-    map[idx++] = _LevelDef(
-      startRow: sr, startCol: sc,
-      endRow: er, endCol: ec,
-      bufferSteps: buffer,
-    );
-  }
+  // ===== 第1-3关: 3x3 教学 =====
+  // 第1关: 最简单，直线走到终点
+  levels.add(_makeLevel('level_${++n}', 3, 3, 0, 0, 2, 2, 5, []));
 
-  for (int i = 0; i < 10; i++) {
-    final tiles = <Tile>[];
-    int keyR, keyC, lockR, lockC;
-    if (i % 2 == 0) {
-      keyR = 2; keyC = 3;
-      lockR = 5; lockC = 4;
-    } else {
-      keyR = 4; keyC = 2;
-      lockR = 3; lockC = 5;
-    }
-    tiles.add(Tile(row: keyR, col: keyC, type: TileType.key));
-    tiles.add(Tile(row: lockR, col: lockC, type: TileType.lock));
+  // 第2关: 起点在右上
+  levels.add(_makeLevel('level_${++n}', 3, 3, 0, 2, 2, 0, 4, []));
 
-    int buffer = 8 - (i ~/ 3);
-    if (buffer < 4) buffer = 4;
-    map[idx++] = _LevelDef(
-      startRow: 0, startCol: 0,
-      endRow: 7, endCol: 7,
-      bufferSteps: buffer,
-      specialTiles: tiles,
-    );
-  }
+  // 第3关: 横向
+  levels.add(_makeLevel('level_${++n}', 3, 4, 1, 0, 1, 3, 4, []));
 
-  for (int i = 0; i < 10; i++) {
-    final tiles = <Tile>[];
-    if (i % 2 == 0) {
-      tiles.add(Tile(row: 1, col: 3, type: TileType.teleport, teleportId: 't1'));
-      tiles.add(Tile(row: 6, col: 4, type: TileType.teleport, teleportId: 't1'));
-    } else {
-      tiles.add(Tile(row: 2, col: 2, type: TileType.teleport, teleportId: 'a'));
-      tiles.add(Tile(row: 5, col: 5, type: TileType.teleport, teleportId: 'a'));
-    }
+  // ===== 第4-6关: 4x4 入门 =====
+  levels.add(_makeLevel('level_${++n}', 4, 4, 0, 0, 3, 3, 5, []));
 
-    int buffer = 7 - (i ~/ 4);
-    if (buffer < 3) buffer = 3;
-    map[idx++] = _LevelDef(
-      startRow: 0, startCol: 0,
-      endRow: 7, endCol: 7,
-      bufferSteps: buffer,
-      specialTiles: tiles,
-    );
-  }
+  levels.add(_makeLevel('level_${++n}', 4, 4, 0, 3, 3, 0, 4, []));
 
-  for (int i = 0; i < 10; i++) {
-    final tiles = <Tile>[];
-    tiles.add(Tile(row: 2, col: 2, type: TileType.teleport, teleportId: 'tp_$i'));
-    tiles.add(Tile(row: 5, col: 5, type: TileType.teleport, teleportId: 'tp_$i'));
-    tiles.add(Tile(row: 3, col: 3, type: TileType.key));
-    tiles.add(Tile(row: 4, col: 4, type: TileType.lock));
+  levels.add(_makeLevel('level_${++n}', 4, 4, 3, 0, 0, 3, 4, [
+    Tile(row: 1, col: 2, type: TileType.key),
+    Tile(row: 2, col: 1, type: TileType.lock),
+  ]));
 
-    int buffer = 6 - (i ~/ 5);
-    if (buffer < 3) buffer = 3;
-    map[idx++] = _LevelDef(
-      startRow: 0, startCol: 0,
-      endRow: 7, endCol: 7,
-      bufferSteps: buffer,
-      specialTiles: tiles,
-    );
-  }
+  // ===== 第7-10关: 5x5 进阶 =====
+  levels.add(_makeLevel('level_${++n}', 5, 5, 0, 0, 4, 4, 5, []));
 
-  for (int i = 0; i < 10; i++) {
-    final tiles = <Tile>[];
-    tiles.add(Tile(row: 1, col: 1, type: TileType.teleport, teleportId: 'x_$i'));
-    tiles.add(Tile(row: 6, col: 6, type: TileType.teleport, teleportId: 'x_$i'));
-    tiles.add(Tile(row: 1, col: 6, type: TileType.teleport, teleportId: 'y_$i'));
-    tiles.add(Tile(row: 6, col: 1, type: TileType.teleport, teleportId: 'y_$i'));
-    tiles.add(Tile(row: 3, col: 2, type: TileType.key));
-    tiles.add(Tile(row: 4, col: 5, type: TileType.lock));
-    tiles.add(Tile(row: 2, col: 5, type: TileType.key));
-    tiles.add(Tile(row: 5, col: 2, type: TileType.lock));
+  levels.add(_makeLevel('level_${++n}', 5, 5, 0, 4, 4, 0, 4, [
+    Tile(row: 2, col: 2, type: TileType.teleport, teleportId: 'tp1'),
+    Tile(row: 3, col: 3, type: TileType.teleport, teleportId: 'tp1'),
+  ]));
 
-    int buffer = 5 - (i ~/ 5);
-    if (buffer < 2) buffer = 2;
-    map[idx++] = _LevelDef(
-      startRow: 0, startCol: 0,
-      endRow: 7, endCol: 7,
-      bufferSteps: buffer,
-      specialTiles: tiles,
-    );
-  }
+  levels.add(_makeLevel('level_${++n}', 5, 5, 2, 0, 2, 4, 4, [
+    Tile(row: 1, col: 2, type: TileType.key),
+    Tile(row: 3, col: 3, type: TileType.lock),
+  ]));
 
-  return map;
+  levels.add(_makeLevel('level_${++n}', 5, 5, 0, 0, 4, 4, 3, [
+    Tile(row: 1, col: 1, type: TileType.teleport, teleportId: 'a'),
+    Tile(row: 3, col: 3, type: TileType.teleport, teleportId: 'a'),
+    Tile(row: 2, col: 3, type: TileType.key),
+    Tile(row: 3, col: 1, type: TileType.lock),
+  ]));
+
+  // ===== 第11-20关: 6x6 多样化起终点 =====
+  levels.add(_makeLevel('level_${++n}', 6, 6, 0, 0, 5, 5, 5, []));
+  levels.add(_makeLevel('level_${++n}', 6, 6, 0, 5, 5, 0, 4, []));
+  levels.add(_makeLevel('level_${++n}', 6, 6, 5, 0, 0, 5, 4, []));
+  levels.add(_makeLevel('level_${++n}', 6, 6, 0, 2, 5, 3, 4, []));
+  levels.add(_makeLevel('level_${++n}', 6, 6, 2, 0, 3, 5, 4, []));
+
+  levels.add(_makeLevel('level_${++n}', 6, 6, 0, 0, 5, 5, 4, [
+    Tile(row: 2, col: 1, type: TileType.key),
+    Tile(row: 4, col: 4, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 6, 6, 0, 5, 5, 0, 3, [
+    Tile(row: 1, col: 3, type: TileType.key),
+    Tile(row: 4, col: 1, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 6, 6, 0, 0, 5, 5, 3, [
+    Tile(row: 1, col: 4, type: TileType.teleport, teleportId: 'b'),
+    Tile(row: 4, col: 1, type: TileType.teleport, teleportId: 'b'),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 6, 6, 5, 5, 0, 0, 3, [
+    Tile(row: 1, col: 1, type: TileType.teleport, teleportId: 'c'),
+    Tile(row: 4, col: 4, type: TileType.teleport, teleportId: 'c'),
+    Tile(row: 2, col: 3, type: TileType.key),
+    Tile(row: 3, col: 2, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 6, 6, 0, 0, 5, 5, 3, [
+    Tile(row: 1, col: 2, type: TileType.key),
+    Tile(row: 4, col: 3, type: TileType.lock),
+    Tile(row: 2, col: 4, type: TileType.key),
+    Tile(row: 3, col: 1, type: TileType.lock),
+  ]));
+
+  // ===== 第21-35关: 7x7 =====
+  levels.add(_makeLevel('level_${++n}', 7, 7, 0, 0, 6, 6, 5, []));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 0, 6, 6, 0, 4, []));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 6, 0, 0, 6, 4, []));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 0, 3, 6, 3, 4, []));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 3, 0, 3, 6, 4, []));
+
+  levels.add(_makeLevel('level_${++n}', 7, 7, 0, 0, 6, 6, 4, [
+    Tile(row: 2, col: 2, type: TileType.key),
+    Tile(row: 5, col: 4, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 0, 6, 6, 0, 3, [
+    Tile(row: 3, col: 3, type: TileType.teleport, teleportId: 'd'),
+    Tile(row: 4, col: 4, type: TileType.teleport, teleportId: 'd'),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 0, 0, 6, 6, 3, [
+    Tile(row: 1, col: 5, type: TileType.teleport, teleportId: 'e'),
+    Tile(row: 5, col: 1, type: TileType.teleport, teleportId: 'e'),
+    Tile(row: 2, col: 3, type: TileType.key),
+    Tile(row: 4, col: 3, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 6, 6, 0, 0, 3, [
+    Tile(row: 2, col: 4, type: TileType.key),
+    Tile(row: 4, col: 2, type: TileType.lock),
+    Tile(row: 1, col: 1, type: TileType.teleport, teleportId: 'f'),
+    Tile(row: 5, col: 5, type: TileType.teleport, teleportId: 'f'),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 0, 0, 6, 6, 3, [
+    Tile(row: 1, col: 3, type: TileType.key),
+    Tile(row: 5, col: 3, type: TileType.lock),
+    Tile(row: 3, col: 1, type: TileType.key),
+    Tile(row: 3, col: 5, type: TileType.lock),
+  ]));
+
+  // 更多7x7变体
+  levels.add(_makeLevel('level_${++n}', 7, 7, 0, 0, 6, 6, 2, [
+    Tile(row: 1, col: 1, type: TileType.teleport, teleportId: 'g'),
+    Tile(row: 5, col: 5, type: TileType.teleport, teleportId: 'g'),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 0, 6, 6, 0, 2, [
+    Tile(row: 1, col: 5, type: TileType.teleport, teleportId: 'h'),
+    Tile(row: 5, col: 1, type: TileType.teleport, teleportId: 'h'),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 3, 0, 3, 6, 3, [
+    Tile(row: 1, col: 2, type: TileType.key),
+    Tile(row: 5, col: 4, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 0, 3, 6, 3, 2, [
+    Tile(row: 2, col: 2, type: TileType.teleport, teleportId: 'i'),
+    Tile(row: 4, col: 4, type: TileType.teleport, teleportId: 'i'),
+    Tile(row: 3, col: 1, type: TileType.key),
+    Tile(row: 3, col: 5, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 7, 7, 0, 0, 6, 6, 2, [
+    Tile(row: 1, col: 1, type: TileType.teleport, teleportId: 'j1'),
+    Tile(row: 5, col: 5, type: TileType.teleport, teleportId: 'j1'),
+    Tile(row: 1, col: 5, type: TileType.teleport, teleportId: 'j2'),
+    Tile(row: 5, col: 1, type: TileType.teleport, teleportId: 'j2'),
+  ]));
+
+  // ===== 第36-50关: 8x8 完整 =====
+  levels.add(_makeLevel('level_${++n}', 8, 8, 0, 0, 7, 7, 5, []));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 0, 7, 7, 0, 4, []));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 7, 0, 0, 7, 4, []));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 0, 3, 7, 4, 4, []));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 3, 0, 4, 7, 4, []));
+
+  levels.add(_makeLevel('level_${++n}', 8, 8, 0, 0, 7, 7, 4, [
+    Tile(row: 2, col: 3, type: TileType.key),
+    Tile(row: 5, col: 4, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 0, 7, 7, 0, 3, [
+    Tile(row: 4, col: 2, type: TileType.key),
+    Tile(row: 3, col: 5, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 0, 0, 7, 7, 3, [
+    Tile(row: 1, col: 3, type: TileType.teleport, teleportId: 'k'),
+    Tile(row: 6, col: 4, type: TileType.teleport, teleportId: 'k'),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 7, 7, 0, 0, 3, [
+    Tile(row: 2, col: 2, type: TileType.teleport, teleportId: 'l'),
+    Tile(row: 5, col: 5, type: TileType.teleport, teleportId: 'l'),
+    Tile(row: 3, col: 3, type: TileType.key),
+    Tile(row: 4, col: 4, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 0, 0, 7, 7, 3, [
+    Tile(row: 2, col: 3, type: TileType.key),
+    Tile(row: 5, col: 4, type: TileType.lock),
+    Tile(row: 2, col: 5, type: TileType.key),
+    Tile(row: 5, col: 2, type: TileType.lock),
+  ]));
+
+  levels.add(_makeLevel('level_${++n}', 8, 8, 0, 0, 7, 7, 2, [
+    Tile(row: 1, col: 1, type: TileType.teleport, teleportId: 'm1'),
+    Tile(row: 6, col: 6, type: TileType.teleport, teleportId: 'm1'),
+    Tile(row: 1, col: 6, type: TileType.teleport, teleportId: 'm2'),
+    Tile(row: 6, col: 1, type: TileType.teleport, teleportId: 'm2'),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 0, 7, 7, 0, 2, [
+    Tile(row: 1, col: 5, type: TileType.teleport, teleportId: 'n'),
+    Tile(row: 6, col: 2, type: TileType.teleport, teleportId: 'n'),
+    Tile(row: 3, col: 2, type: TileType.key),
+    Tile(row: 4, col: 5, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 0, 0, 7, 7, 2, [
+    Tile(row: 2, col: 2, type: TileType.teleport, teleportId: 'o1'),
+    Tile(row: 5, col: 5, type: TileType.teleport, teleportId: 'o1'),
+    Tile(row: 3, col: 3, type: TileType.key),
+    Tile(row: 4, col: 4, type: TileType.lock),
+    Tile(row: 2, col: 5, type: TileType.key),
+    Tile(row: 5, col: 2, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 7, 0, 0, 7, 2, [
+    Tile(row: 1, col: 1, type: TileType.teleport, teleportId: 'p1'),
+    Tile(row: 6, col: 6, type: TileType.teleport, teleportId: 'p1'),
+    Tile(row: 1, col: 6, type: TileType.teleport, teleportId: 'p2'),
+    Tile(row: 6, col: 1, type: TileType.teleport, teleportId: 'p2'),
+    Tile(row: 3, col: 2, type: TileType.key),
+    Tile(row: 4, col: 5, type: TileType.lock),
+  ]));
+  levels.add(_makeLevel('level_${++n}', 8, 8, 0, 0, 7, 7, 1, [
+    Tile(row: 1, col: 3, type: TileType.teleport, teleportId: 'q1'),
+    Tile(row: 6, col: 4, type: TileType.teleport, teleportId: 'q1'),
+    Tile(row: 3, col: 1, type: TileType.teleport, teleportId: 'q2'),
+    Tile(row: 4, col: 6, type: TileType.teleport, teleportId: 'q2'),
+    Tile(row: 2, col: 3, type: TileType.key),
+    Tile(row: 5, col: 4, type: TileType.lock),
+    Tile(row: 2, col: 5, type: TileType.key),
+    Tile(row: 5, col: 2, type: TileType.lock),
+  ]));
+
+  return levels;
 }

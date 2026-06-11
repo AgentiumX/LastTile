@@ -33,8 +33,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                '极简策略解谜',
-                style: Theme.of(context).textTheme.bodyMedium,
+                '走过即消失，步步不可逆',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.primary,
+                    ),
               ),
               const SizedBox(height: 40),
               Expanded(
@@ -48,11 +50,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   itemBuilder: (context, index) {
                     final score = ref.watch(levelScoreProvider(index));
                     final isUnlocked = index <= unlocked;
+                    final isCompleted = (score.stars ?? 0) > 0;
                     return _LevelButton(
                       level: index + 1,
                       stars: score.stars ?? 0,
                       best: score.bestSteps,
                       unlocked: isUnlocked,
+                      completed: isCompleted,
+                      isCurrent: index == unlocked,
                       onTap: isUnlocked
                           ? () => _openLevel(context, index)
                           : null,
@@ -80,6 +85,8 @@ class _LevelButton extends StatelessWidget {
   final int stars;
   final int? best;
   final bool unlocked;
+  final bool completed;
+  final bool isCurrent;
   final VoidCallback? onTap;
 
   const _LevelButton({
@@ -87,48 +94,84 @@ class _LevelButton extends StatelessWidget {
     required this.stars,
     this.best,
     required this.unlocked,
+    required this.completed,
+    required this.isCurrent,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    Color bgColor;
+    Color borderColor;
+    double borderWidth;
+    Color textColor;
+
+    if (!unlocked) {
+      bgColor = const Color(0xFF1A1A1A);
+      borderColor = Colors.grey.withOpacity(0.2);
+      borderWidth = 1;
+      textColor = Colors.grey.withOpacity(0.3);
+    } else if (completed) {
+      bgColor = AppTheme.tileKey.withOpacity(0.15);
+      borderColor = AppTheme.tileKey;
+      borderWidth = 2;
+      textColor = AppTheme.textPrimary;
+    } else if (isCurrent) {
+      bgColor = AppTheme.primary.withOpacity(0.15);
+      borderColor = AppTheme.primary;
+      borderWidth = 2.5;
+      textColor = AppTheme.textPrimary;
+    } else {
+      bgColor = AppTheme.surface;
+      borderColor = AppTheme.primary.withOpacity(0.3);
+      borderWidth = 1;
+      textColor = AppTheme.textPrimary;
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: unlocked ? AppTheme.surface : AppTheme.tileVisited,
+          color: bgColor,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: unlocked ? AppTheme.primary.withOpacity(0.5) : Colors.transparent,
-          ),
+          border: Border.all(color: borderColor, width: borderWidth),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              '$level',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: unlocked ? AppTheme.textPrimary : AppTheme.textSecondary,
+            if (!unlocked)
+              Icon(Icons.lock, size: 18, color: Colors.grey.withOpacity(0.3))
+            else
+              Text(
+                '$level',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (i) {
-                return Icon(
-                  Icons.star,
-                  size: 10,
-                  color: i < stars ? AppTheme.tileEnd : Colors.grey.withOpacity(0.3),
-                );
-              }),
-            ),
+            const SizedBox(height: 2),
+            if (unlocked)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (i) {
+                  return Icon(
+                    Icons.star,
+                    size: 8,
+                    color: i < stars
+                        ? AppTheme.tileEnd
+                        : Colors.grey.withOpacity(0.15),
+                  );
+                }),
+              ),
             if (best != null)
               Text(
                 '$best步',
-                style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                style: TextStyle(
+                  fontSize: 9,
+                  color: completed ? AppTheme.tileKey : AppTheme.textSecondary,
+                ),
               ),
           ],
         ),

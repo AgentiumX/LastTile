@@ -14,7 +14,7 @@ class BoardWidget extends StatelessWidget {
     final screenSize = MediaQuery.of(context).size;
     final maxSide = screenSize.width < screenSize.height
         ? screenSize.width
-        : screenSize.height * 0.6;
+        : screenSize.height * 0.55;
     const padding = 16.0;
     const gap = 4.0;
     final maxDim = state.level.rows > state.level.cols
@@ -23,7 +23,7 @@ class BoardWidget extends StatelessWidget {
     final tileSize = (maxSide - padding * 2 - gap * maxDim) / maxDim;
 
     return Container(
-      padding: EdgeInsets.all(padding),
+      padding: const EdgeInsets.all(padding),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: List.generate(state.level.rows, (row) {
