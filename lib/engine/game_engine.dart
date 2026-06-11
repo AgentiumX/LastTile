@@ -86,7 +86,7 @@ class GameEngine {
       return newState.copyWith(
         status: GameStatus.failed,
         distanceToEnd: dist,
-        lastFeedback: '距离终点：剩余${dist}格',
+        lastFeedback: '距离终点：剩余$dist格',
       );
     }
 
@@ -99,7 +99,7 @@ class GameEngine {
       return newState.copyWith(
         status: GameStatus.failed,
         distanceToEnd: dist,
-        lastFeedback: '无路可走！距离终点：剩余${dist}格',
+        lastFeedback: '无路可走！距离终点：剩余$dist格',
       );
     }
 

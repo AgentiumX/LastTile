@@ -4,6 +4,7 @@ import 'package:last_tile/engine/game_engine.dart';
 import 'package:last_tile/engine/path_solver.dart';
 import 'package:last_tile/models/game_state.dart';
 import 'package:last_tile/models/level.dart';
+import 'package:last_tile/models/level_data.dart';
 import 'package:last_tile/models/tile.dart';
 import 'package:last_tile/core/utils/direction.dart';
 
