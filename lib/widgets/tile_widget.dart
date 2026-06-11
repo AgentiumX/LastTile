@@ -104,7 +104,7 @@ class TileWidget extends StatelessWidget {
             Center(
               child: Icon(icon, color: iconColor, size: size * 0.35),
             ),
-          if (label != null)
+          if (label != null && label!.isNotEmpty)
             Positioned(
               bottom: 4,
               right: 6,

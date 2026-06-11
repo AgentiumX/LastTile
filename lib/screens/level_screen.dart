@@ -80,9 +80,9 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
     }
 
     if (state == null) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: AppTheme.background,
-        body: const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+        body: Center(child: CircularProgressIndicator(color: AppTheme.primary)),
       );
     }
 
