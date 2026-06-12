@@ -14,6 +14,10 @@ class GameEngine {
     if (!state.isInBounds(newRow, newCol)) return state;
 
     final targetTile = state.getTile(newRow, newCol);
+
+    // 墙壁不可进入
+    if (targetTile != null && targetTile.type == TileType.wall) return state;
+
     final tileKey = state.tileKey(newRow, newCol);
 
     if (state.isVisited(newRow, newCol) &&
@@ -86,7 +90,7 @@ class GameEngine {
       return newState.copyWith(
         status: GameStatus.failed,
         distanceToEnd: dist,
-        lastFeedback: '距离终点：剩余$dist格',
+        lastFeedback: '距离终点：剩余${dist}格',
       );
     }
 
@@ -99,7 +103,7 @@ class GameEngine {
       return newState.copyWith(
         status: GameStatus.failed,
         distanceToEnd: dist,
-        lastFeedback: '无路可走！距离终点：剩余$dist格',
+        lastFeedback: '无路可走！距离终点：剩余${dist}格',
       );
     }
 
@@ -135,6 +139,7 @@ class GameEngine {
       if (!state.isInBounds(nr, nc)) continue;
 
       final tile = state.getTile(nr, nc);
+      if (tile != null && tile.type == TileType.wall) continue;
       if (tile != null && tile.type == TileType.lock && state.player.keys <= 0) {
         continue;
       }

@@ -1,4 +1,4 @@
-import 'package:collection/collection.dart';
+import 'dart:collection';
 
 import '../models/level.dart';
 import '../models/tile.dart';
@@ -23,7 +23,7 @@ class _Node implements Comparable<_Node> {
   @override
   int compareTo(_Node other) => priority - other.priority;
 
-  String get stateKey => '${row}_${col}_$keys';
+  String get key => '${row}_${col}_${keys}';
 }
 
 class PathSolver {
@@ -76,7 +76,7 @@ class PathSolver {
       keys: 0,
     );
     open.add(startNode);
-    visitedStates[startNode.stateKey] = 0;
+    visitedStates[startNode.key] = 0;
 
     while (open.isNotEmpty) {
       final current = open.removeFirst();
@@ -87,6 +87,9 @@ class PathSolver {
 
       for (final (nr, nc) in _neighbors(current.row, current.col)) {
         if (nr < 0 || nr >= level.rows || nc < 0 || nc >= level.cols) continue;
+
+        final neighborTile = level.getSpecialTile(nr, nc);
+        if (neighborTile != null && neighborTile.type == TileType.wall) continue;
 
         int newKeys = current.keys;
         final specialTile = level.getSpecialTile(nr, nc);
@@ -102,7 +105,7 @@ class PathSolver {
         }
 
         final newSteps = current.steps + 1;
-        final stateKey = '${nr}_${nc}_$newKeys';
+        final stateKey = '${nr}_${nc}_${newKeys}';
 
         if (visitedStates.containsKey(stateKey) &&
             visitedStates[stateKey]! <= newSteps) continue;
@@ -124,7 +127,7 @@ class PathSolver {
           if (pair != null) {
             for (final (pr, pc) in pair) {
               if (pr == nr && pc == nc) continue;
-              final tpKey = '${pr}_${pc}_$newKeys';
+              final tpKey = '${pr}_${pc}_${newKeys}';
               if (visitedStates.containsKey(tpKey) &&
                   visitedStates[tpKey]! <= newSteps) continue;
               visitedStates[tpKey] = newSteps;

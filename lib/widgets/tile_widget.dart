@@ -9,6 +9,7 @@ class TileWidget extends StatelessWidget {
   final bool isPlayer;
   final double size;
   final String? teleportId;
+  final bool animateCollapse;
 
   const TileWidget({
     super.key,
@@ -17,41 +18,31 @@ class TileWidget extends StatelessWidget {
     this.isPlayer = false,
     required this.size,
     this.teleportId,
+    this.animateCollapse = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    // 已访问且非玩家位置 = 已坍塌
-    if (visited && !isPlayer) {
-      return Container(
-        margin: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0D0D0D),
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(
-            color: const Color(0xFF222222),
-            width: 0.5,
-          ),
-        ),
-        child: Center(
-          child: Icon(
-            Icons.close,
-            size: size * 0.2,
-            color: const Color(0xFF333333),
-          ),
-        ),
-      );
-    }
-
     Color bgColor = AppTheme.tileNormal;
     IconData? icon;
     Color iconColor = Colors.white;
+    String? label;
 
     switch (type) {
+      case TileType.wall:
+        return Container(
+          margin: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: const Color(0xFF111111),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: const Color(0xFF2A2A2A),
+              width: 1.5,
+            ),
+          ),
+        );
       case TileType.start:
         bgColor = AppTheme.tileStart;
-        icon = Icons.play_arrow;
-        iconColor = Colors.white;
         break;
       case TileType.end:
         bgColor = AppTheme.tileEnd;
@@ -61,6 +52,7 @@ class TileWidget extends StatelessWidget {
       case TileType.teleport:
         bgColor = AppTheme.tileTeleport;
         icon = Icons.autorenew;
+        label = teleportId;
         break;
       case TileType.key:
         bgColor = AppTheme.tileKey;
@@ -79,41 +71,56 @@ class TileWidget extends StatelessWidget {
         icon = Icons.autorenew;
         break;
       default:
-        bgColor = AppTheme.tileNormal;
+        bgColor = visited ? AppTheme.tileVisited : AppTheme.tileNormal;
     }
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+    final content = AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
       curve: Curves.easeOut,
       margin: const EdgeInsets.all(2),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(6),
-        boxShadow: [
-          BoxShadow(
-            color: bgColor.withOpacity(0.3),
-            blurRadius: isPlayer ? 12 : 3,
-            spreadRadius: isPlayer ? 2 : 0,
-          ),
-        ],
+        boxShadow: visited
+            ? null
+            : [
+                BoxShadow(
+                  color: bgColor.withValues(alpha: 0.3),
+                  blurRadius: isPlayer ? 12 : 4,
+                  spreadRadius: isPlayer ? 2 : 0,
+                ),
+              ],
       ),
       child: Stack(
         children: [
-          if (icon != null && !isPlayer)
+          if (icon != null)
             Center(
               child: Icon(icon, color: iconColor, size: size * 0.35),
+            ),
+          if (label != null)
+            Positioned(
+              bottom: 4,
+              right: 6,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: size * 0.2,
+                  color: iconColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           if (isPlayer)
             Center(
               child: Container(
-                width: size * 0.45,
-                height: size * 0.45,
+                width: size * 0.4,
+                height: size * 0.4,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       blurRadius: 8,
                     ),
                   ],
@@ -123,5 +130,18 @@ class TileWidget extends StatelessWidget {
         ],
       ),
     );
+
+    if (animateCollapse && visited) {
+      return TweenAnimationBuilder<double>(
+        duration: const Duration(milliseconds: 150),
+        tween: Tween(begin: 1.0, end: 0.7),
+        builder: (context, value, child) {
+          return Transform.scale(scale: value, child: child);
+        },
+        child: content,
+      );
+    }
+
+    return content;
   }
 }

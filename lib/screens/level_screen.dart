@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_theme.dart';
 import '../core/utils/direction.dart';
-import '../engine/level_loader.dart';
 import '../models/game_state.dart';
 import '../screens/result_screen.dart';
 import '../state/game_provider.dart';
@@ -64,7 +63,7 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
       ref.read(gameProvider.notifier).restart();
       return;
     }
-    if (dir != null) _handleDirection(dir);
+    if (dir != null) _handleDirection(dir!);
   }
 
   @override
@@ -75,14 +74,14 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
       if (state.status == GameStatus.completed ||
           state.status == GameStatus.failed) {
         _resultShown = true;
-        Future.microtask(() => _showResult(state));
+        Future.microtask(() => _showResult(state!));
       }
     }
 
     if (state == null) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: AppTheme.background,
-        body: Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+        body: const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
       );
     }
 
@@ -96,7 +95,6 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
             children: [
               HudWidget(
                 state: state,
-                levelIndex: widget.levelIndex,
                 bestSteps: ref.read(gameProvider.notifier).bestSteps,
                 onRestart: () {
                   _resultShown = false;
@@ -135,16 +133,13 @@ class _LevelScreenState extends ConsumerState<LevelScreen> {
           ref.read(gameProvider.notifier).restart();
         },
         onNext: () {
-          Navigator.pop(ctx); // close dialog
-          Navigator.pop(context); // close current LevelScreen
+          Navigator.pop(ctx);
+          _resultShown = false;
           final next = widget.levelIndex + 1;
-          if (next < LevelLoader.totalLevels) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => LevelScreen(levelIndex: next),
-              ),
-            );
+          if (next < 50) {
+            ref.read(gameProvider.notifier).loadLevel(next);
+          } else {
+            Navigator.pop(context);
           }
         },
         onHome: () {
