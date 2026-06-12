@@ -1,5 +1,6 @@
 enum TileType {
   normal,
+  wall,
   start,
   end,
   teleport,
@@ -63,6 +64,8 @@ class Tile {
 
   static TileType _parseTileType(String str) {
     switch (str.toLowerCase()) {
+      case 'wall':
+        return TileType.wall;
       case 'start':
         return TileType.start;
       case 'end':
@@ -84,6 +87,8 @@ class Tile {
 
   static String _tileTypeToString(TileType type) {
     switch (type) {
+      case TileType.wall:
+        return 'wall';
       case TileType.start:
         return 'start';
       case TileType.end:

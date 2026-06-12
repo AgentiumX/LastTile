@@ -29,6 +29,18 @@ class TileWidget extends StatelessWidget {
     String? label;
 
     switch (type) {
+      case TileType.wall:
+        return Container(
+          margin: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: const Color(0xFF111111),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: const Color(0xFF2A2A2A),
+              width: 1.5,
+            ),
+          ),
+        );
       case TileType.start:
         bgColor = AppTheme.tileStart;
         break;

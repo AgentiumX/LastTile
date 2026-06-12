@@ -88,6 +88,9 @@ class PathSolver {
       for (final (nr, nc) in _neighbors(current.row, current.col)) {
         if (nr < 0 || nr >= level.rows || nc < 0 || nc >= level.cols) continue;
 
+        final neighborTile = level.getSpecialTile(nr, nc);
+        if (neighborTile != null && neighborTile.type == TileType.wall) continue;
+
         int newKeys = current.keys;
         final specialTile = level.getSpecialTile(nr, nc);
 
